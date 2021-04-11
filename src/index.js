@@ -56,7 +56,6 @@ for (let file of files) {
                 }
                 break;
             case ".jpg":
-            case ".JPG":
             case ".jpeg":
             case ".png":
             case ".svg":
