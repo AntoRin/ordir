@@ -1,6 +1,6 @@
 const initialize = require("./init");
 
-const version = "1.1.0";
+const version = "1.2.0";
 
 function beginInterface() {
    const allFlags = [
