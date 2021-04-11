@@ -1,6 +1,6 @@
 {
    "name": "ordir",
-   "version": "1.2.0",
+   "version": "1.2.1",
    "description": "Bring order to your directories with an interactive CLI.",
    "main": "src/index.js",
    "bin": "bin/cli",
