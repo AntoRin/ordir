@@ -3,6 +3,9 @@ const path = require("path");
 const inquirer = require("inquirer");
 
 async function getCustomDetails() {
+   console.info(
+      "Note: if you had chosen to exclude/target specific extensions, the preferences other than the required ones do not take effect"
+   );
    try {
       let customDirectories = await inquirer.prompt([
          {
@@ -35,6 +38,12 @@ async function getCustomDetails() {
             message: "Name of the directory you wish to use for Archives:",
             default: "Archives",
          },
+         {
+            type: String,
+            name: "styles",
+            message: "Name of the directory you wish to use for Styles:",
+            default: "Styles",
+         },
       ]);
       console.log(customDirectories);
       return customDirectories;
@@ -55,11 +64,35 @@ async function initialize() {
       videos: "Videos",
       programs: "Programs",
       archives: "Archives",
+      styles: "Styles",
    };
 
-   if (flag !== "-y" && flag !== "--yes") {
+   if (flag !== "-y" && flag !== "--yes" && !flag?.match(/-y\D|-\Dy/)) {
       let customFolderNames = await getCustomDetails();
       folders = customFolderNames;
+   }
+
+   let targets = [];
+   let exclusions = [];
+
+   if (
+      flag === "-t" ||
+      flag === "--target" ||
+      flag === "-ty" ||
+      flag === "-yt"
+   ) {
+      let [argv1, argv2, thisFlag, ...requiredTargets] = process.argv;
+      targets = requiredTargets.map(extension => extension.toLowerCase());
+   }
+
+   if (
+      flag === "-e" ||
+      flag === "--exclude" ||
+      flag === "-ey" ||
+      flag === "-ye"
+   ) {
+      let [argv1, argv2, thisFlag, ...requiredExclusions] = process.argv;
+      exclusions = requiredExclusions.map(extension => extension.toLowerCase());
    }
 
    let folderMap = {
@@ -68,6 +101,7 @@ async function initialize() {
       [folders["videos"]]: false,
       [folders["programs"]]: false,
       [folders["archives"]]: false,
+      [folders["styles"]]: false,
    };
 
    let files = fs.readdirSync(directory);
@@ -87,6 +121,14 @@ async function initialize() {
       let stat = fs.statSync(filePath);
       let ext = path.extname(file).toLowerCase();
       let fileName = path.basename(filePath);
+
+      if (targets.length > 0) {
+         if (!targets.includes(ext)) continue;
+      }
+
+      if (exclusions.length > 0) {
+         if (exclusions.includes(ext)) continue;
+      }
 
       if (stat.isDirectory()) {
          if (fileName in folderMap) folderMap[fileName] = true;
@@ -184,11 +226,27 @@ async function initialize() {
                   );
                }
                break;
+            case ".css":
+            case ".scss":
+               if (folderMap[folders.styles]) {
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.styles, fileName)
+                  );
+               } else {
+                  fs.mkdirSync(path.join(directory, folders.styles));
+                  folderMap[folders.styles] = true;
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.styles, fileName)
+                  );
+               }
          }
       }
    }
 
    console.log("✨✨Clean working directory🎆🎆");
+   process.exit(0);
 }
 
 module.exports = initialize;
