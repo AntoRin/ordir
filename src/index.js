@@ -1,107 +1,47 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
+const initialize = require("./init");
 
-let directory = process.cwd();
+const version = "1.1.0";
 
-let folderMap = {
-    Documents: false,
-    Images: false,
-    Videos: false,
-    Programs: false,
-    Archives: false,
+const allFlags = ["-v", "--version", "-h", "--help", "-y", "--yes"];
+
+const flagMap = {
+   version: ["-v", "--version"],
+   help: ["-h", "--help"],
+   options: ["-y", "--yes"],
 };
 
-let files = fs.readdirSync(directory);
+let flag = process.argv[2];
 
-for (let file of files) {
-    let filePath = path.join(directory, file);
-    let stat = fs.statSync(filePath);
-    let fileName = path.basename(filePath);
-
-    if (stat.isDirectory()) {
-        if (fileName in  folderMap)
-            folderMap[fileName] = true;
-    }
+function showVersion() {
+   console.info(version);
+   process.exit(0);
 }
 
-for (let file of files) {
-    let filePath = path.join(directory, file);
-    let stat = fs.statSync(filePath);
-    let ext = path.extname(file).toLocaleLowerCase();
-    let fileName = path.basename(filePath);
+function showHelp() {
+   console.log(
+      "\n\n Use ordir to organize your current working directory by moving files into relevant folders.\n\n"
+   );
+   console.log("usage: ordir [<args>]\n\n");
+   for (flag in flagMap) {
+      console.log(`${flag}: [${flagMap[flag][0]}] [${flagMap[flag][1]}]`);
+   }
 
-    if (stat.isDirectory()) {
-        if (fileName in  folderMap)
-            folderMap[fileName] = true;
-    }
-
-    if (stat.isFile()) {
-
-        switch (ext) {
-            case ".txt":
-            case ".docx":
-            case ".doc":
-            case ".pdf":
-            case ".ppt":
-            case ".pptx":
-            case ".xlsx":
-                if (folderMap.Documents) {
-                    fs.renameSync(filePath, path.join(directory, "Documents", fileName));
-                } else {
-                    fs.mkdirSync(path.join(directory, "Documents"));
-                    folderMap.Documents = true;
-                    fs.renameSync(filePath, path.join(directory, "Documents", fileName));
-                }
-                break;
-            case ".jpg":
-            case ".jpeg":
-            case ".png":
-            case ".svg":
-                if (folderMap.Images) {
-                    fs.renameSync(filePath, path.join(directory, "Images", fileName));
-                } else {
-                    fs.mkdirSync(path.join(directory, "Images"));
-                    folderMap.Images = true;
-                    fs.renameSync(filePath, path.join(directory, "Images", fileName));
-                }
-                break;
-            case ".mp4":
-            case ".mov":
-            case ".wmv":
-            case "avi":
-            case ".flv":
-            case ".mkv":
-                if (folderMap.Videos) {
-                    fs.renameSync(filePath, path.join(directory, "Videos", fileName));
-                } else {
-                    fs.mkdirSync(path.join(directory, "Videos"));
-                    folderMap.Videos = true;
-                    fs.renameSync(filePath, path.join(directory, "Videos", fileName));
-                }
-                break;
-            case ".exe":
-                if (folderMap.Programs) {
-                    fs.renameSync(filePath, path.join(directory, "Programs", fileName));
-                } else {
-                    fs.mkdirSync(path.join(directory, "Programs"));
-                    folderMap.Programs = true;
-                    fs.renameSync(filePath, path.join(directory, "Programs", fileName));
-                }
-                break;
-            case ".zip":
-            case ".rar":
-                if (folderMap.Archives) {
-                    fs.renameSync(filePath, path.join(directory, "Archives", fileName));
-                } else {
-                    fs.mkdirSync(path.join(directory, "Archives"));
-                    folderMap.Archives = true;
-                    fs.renameSync(filePath, path.join(directory, "Archives", fileName));
-                }
-                break;
-        }
-    }
+   console.log(
+      "\n\nIf you pass in the -y flag, you won't get to choose what directories you want relevant files to be moved in. If there are directories with the same names as defaults, relevant files will be moved accordingly.\n\n"
+   );
+   process.exit(0);
 }
 
-console.log("Jordan B. Peterson is proud!✔👍");
+if (flag) {
+   if (allFlags.includes(flag)) {
+      flagMap.version.includes(flag) && showVersion();
+      flagMap.help.includes(flag) && showHelp();
+   } else {
+      console.log("Unknown option:", flag);
+      showHelp();
+   }
+}
+
+initialize();
