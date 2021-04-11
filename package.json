@@ -1,0 +1,23 @@
+{
+  "name": "ordir",
+  "version": "1.0.0",
+  "description": "Bring order to your directories with an interactive CLI.",
+  "main": "src/index.js",
+  "bin": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AntoRin/ordir.git"
+  },
+  "keywords": [
+    "CLI"
+  ],
+  "author": "AntoRin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AntoRin/ordir/issues"
+  },
+  "homepage": "https://github.com/AntoRin/ordir#readme"
+}
