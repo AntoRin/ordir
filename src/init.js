@@ -67,307 +67,317 @@ async function getCustomDetails() {
 }
 
 async function initialize() {
-   let directory = process.cwd();
+   try {
+      let directory = process.cwd();
 
-   let flag = process.argv[2]?.toLowerCase();
+      let flag = process.argv[2]?.toLowerCase();
 
-   let folders = {
-      documents: "Documents",
-      images: "Images",
-      videos: "Videos",
-      programs: "Programs",
-      archives: "Archives",
-      styles: "Styles",
-      code: "Code",
-      misc: "Misc",
-   };
+      let folders = {
+         documents: "Documents",
+         images: "Images",
+         videos: "Videos",
+         programs: "Programs",
+         archives: "Archives",
+         styles: "Styles",
+         code: "Code",
+         misc: "Misc",
+      };
 
-   let targets = [];
-   let exclusions = [];
-   let specialDirectoryInstance = false;
-   let specialDirectory = null;
+      let targets = [];
+      let exclusions = [];
+      let specialDirectoryInstance = false;
+      let specialDirectory = null;
 
-   if (
-      flag === "-t" ||
-      flag === "--target" ||
-      flag === "-ty" ||
-      flag === "-yt"
-   ) {
-      let [argv1, argv2, thisFlag, ...requiredTargets] = process.argv;
       if (
-         requiredTargets.length > 1 &&
-         !requiredTargets[requiredTargets.length - 1].startsWith(".")
+         flag === "-t" ||
+         flag === "--target" ||
+         flag === "-ty" ||
+         flag === "-yt"
       ) {
-         specialDirectory = requiredTargets.splice(
-            requiredTargets.length - 1,
-            1
-         )[0];
+         let [argv1, argv2, thisFlag, ...requiredTargets] = process.argv;
+         if (
+            requiredTargets.length > 1 &&
+            !requiredTargets[requiredTargets.length - 1].startsWith(".")
+         ) {
+            specialDirectory = requiredTargets.splice(
+               requiredTargets.length - 1,
+               1
+            )[0];
+         }
+         targets = requiredTargets.map(extension => extension.toLowerCase());
+         let invalidExtension = targets.find(extension => extension[0] !== ".");
+         if (invalidExtension) handleError("Invalid extension");
       }
-      targets = requiredTargets.map(extension => extension.toLowerCase());
-      let invalidExtension = targets.find(extension => extension[0] !== ".");
-      if (invalidExtension) handleError("Invalid extension");
-   }
 
-   if (
-      flag === "-e" ||
-      flag === "--exclude" ||
-      flag === "-ey" ||
-      flag === "-ye"
-   ) {
-      let [argv1, argv2, thisFlag, ...requiredExclusions] = process.argv;
       if (
-         requiredExclusions.length > 1 &&
-         !requiredExclusions[requiredExclusions.length - 1].startsWith(".")
+         flag === "-e" ||
+         flag === "--exclude" ||
+         flag === "-ey" ||
+         flag === "-ye"
       ) {
-         specialDirectory = requiredExclusions.splice(
-            requiredExclusions.length - 1,
-            1
-         )[0];
-      }
-      exclusions = requiredExclusions.map(extension => extension.toLowerCase());
-      let invalidExtension = exclusions.find(extension => extension[0] !== ".");
-      if (invalidExtension) handleError("Invalid extension");
-   }
-
-   if (
-      flag !== "-y" &&
-      flag !== "--yes" &&
-      !flag?.match(/^-y\D$|^-\Dy$/) &&
-      !specialDirectory
-   ) {
-      let customFolderNames = await getCustomDetails();
-      folders = customFolderNames;
-   }
-
-   let folderMap = {
-      [folders["documents"]]: false,
-      [folders["images"]]: false,
-      [folders["videos"]]: false,
-      [folders["programs"]]: false,
-      [folders["archives"]]: false,
-      [folders["styles"]]: false,
-      [folders["code"]]: false,
-      [folders["misc"]]: false,
-   };
-
-   let files = fs.readdirSync(directory);
-
-   for (let file of files) {
-      let filePath = path.join(directory, file);
-      let stat = fs.statSync(filePath);
-      let fileName = path.basename(filePath);
-
-      if (stat.isDirectory()) {
-         if (fileName in folderMap) folderMap[fileName] = true;
-         if (fileName === specialDirectory) specialDirectoryInstance = true;
-      }
-   }
-
-   for (let file of files) {
-      let filePath = path.join(directory, file);
-      let stat = fs.statSync(filePath);
-      let ext = path.extname(file).toLowerCase();
-      let fileName = path.basename(filePath);
-
-      if (stat.isDirectory()) continue;
-
-      if (targets.length > 0) {
-         if (targets.includes(ext)) {
-            if (specialDirectory) {
-               if (specialDirectoryInstance) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, specialDirectory, fileName)
-                  );
-                  continue;
-               } else {
-                  fs.mkdirSync(path.join(directory, specialDirectory));
-                  specialDirectoryInstance = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, specialDirectory, fileName)
-                  );
-                  continue;
-               }
-            }
-         } else continue;
+         let [argv1, argv2, thisFlag, ...requiredExclusions] = process.argv;
+         if (
+            requiredExclusions.length > 1 &&
+            !requiredExclusions[requiredExclusions.length - 1].startsWith(".")
+         ) {
+            specialDirectory = requiredExclusions.splice(
+               requiredExclusions.length - 1,
+               1
+            )[0];
+         }
+         exclusions = requiredExclusions.map(extension =>
+            extension.toLowerCase()
+         );
+         let invalidExtension = exclusions.find(
+            extension => extension[0] !== "."
+         );
+         if (invalidExtension) handleError("Invalid extension");
       }
 
-      if (exclusions.length > 0) {
-         if (!exclusions.includes(ext)) {
-            if (specialDirectory) {
-               if (specialDirectoryInstance) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, specialDirectory, fileName)
-                  );
-                  continue;
-               } else {
-                  fs.mkdirSync(path.join(directory, specialDirectory));
-                  specialDirectoryInstance = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, specialDirectory, fileName)
-                  );
-                  continue;
-               }
-            }
-         } else {
-            continue;
+      if (
+         flag !== "-y" &&
+         flag !== "--yes" &&
+         !flag?.match(/^-y\D$|^-\Dy$/) &&
+         !specialDirectory
+      ) {
+         let customFolderNames = await getCustomDetails();
+         folders = customFolderNames;
+      }
+
+      let folderMap = {
+         [folders["documents"]]: false,
+         [folders["images"]]: false,
+         [folders["videos"]]: false,
+         [folders["programs"]]: false,
+         [folders["archives"]]: false,
+         [folders["styles"]]: false,
+         [folders["code"]]: false,
+         [folders["misc"]]: false,
+      };
+
+      let files = fs.readdirSync(directory);
+
+      for (let file of files) {
+         let filePath = path.join(directory, file);
+         let stat = fs.statSync(filePath);
+         let fileName = path.basename(filePath);
+
+         if (stat.isDirectory()) {
+            if (fileName in folderMap) folderMap[fileName] = true;
+            if (fileName === specialDirectory) specialDirectoryInstance = true;
          }
       }
 
-      if (stat.isFile()) {
-         switch (ext) {
-            case ".txt":
-            case ".docx":
-            case ".doc":
-            case ".pdf":
-            case ".ppt":
-            case ".pptx":
-            case ".xlsx":
-               if (folderMap[folders.documents]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.documents, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.documents));
-                  folderMap[folders.documents] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.documents, fileName)
-                  );
+      for (let file of files) {
+         let filePath = path.join(directory, file);
+         let stat = fs.statSync(filePath);
+         let ext = path.extname(file).toLowerCase();
+         let fileName = path.basename(filePath);
+
+         if (stat.isDirectory()) continue;
+
+         if (targets.length > 0) {
+            if (targets.includes(ext)) {
+               if (specialDirectory) {
+                  if (specialDirectoryInstance) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, specialDirectory, fileName)
+                     );
+                     continue;
+                  } else {
+                     fs.mkdirSync(path.join(directory, specialDirectory));
+                     specialDirectoryInstance = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, specialDirectory, fileName)
+                     );
+                     continue;
+                  }
                }
-               break;
-            case ".jpg":
-            case ".jpeg":
-            case ".png":
-            case ".svg":
-               if (folderMap[folders.images]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.images, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.images));
-                  folderMap[folders.images] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.images, fileName)
-                  );
+            } else continue;
+         }
+
+         if (exclusions.length > 0) {
+            if (!exclusions.includes(ext)) {
+               if (specialDirectory) {
+                  if (specialDirectoryInstance) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, specialDirectory, fileName)
+                     );
+                     continue;
+                  } else {
+                     fs.mkdirSync(path.join(directory, specialDirectory));
+                     specialDirectoryInstance = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, specialDirectory, fileName)
+                     );
+                     continue;
+                  }
                }
-               break;
-            case ".mp4":
-            case ".mov":
-            case ".wmv":
-            case ".avi":
-            case ".flv":
-            case ".mkv":
-               if (folderMap[folders.videos]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.videos, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.videos));
-                  folderMap[folders.videos] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.videos, fileName)
-                  );
-               }
-               break;
-            case ".exe":
-               if (folderMap[folders.programs]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.programs, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.programs));
-                  folderMap[folders.programs] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.programs, fileName)
-                  );
-               }
-               break;
-            case ".zip":
-            case ".rar":
-               if (folderMap[folders.archives]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.archives, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.archives));
-                  folderMap[folders.archives] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.archives, fileName)
-                  );
-               }
-               break;
-            case ".css":
-            case ".scss":
-               if (folderMap[folders.styles]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.styles, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.styles));
-                  folderMap[folders.styles] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.styles, fileName)
-                  );
-               }
-               break;
-            case ".html":
-            case ".js":
-            case ".jsx":
-            case ".java":
-            case ".py":
-            case ".vue":
-               if (folderMap[folders.code]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.code, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.code));
-                  folderMap[folders.code] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.code, fileName)
-                  );
-               }
-               break;
-            default:
-               if (folderMap[folders.misc]) {
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.misc, fileName)
-                  );
-               } else {
-                  fs.mkdirSync(path.join(directory, folders.misc));
-                  folderMap[folders.misc] = true;
-                  fs.renameSync(
-                     filePath,
-                     path.join(directory, folders.misc, fileName)
-                  );
-               }
-               break;
+            } else {
+               continue;
+            }
+         }
+
+         if (stat.isFile()) {
+            switch (ext) {
+               case ".txt":
+               case ".docx":
+               case ".doc":
+               case ".pdf":
+               case ".ppt":
+               case ".pptx":
+               case ".xlsx":
+                  if (folderMap[folders.documents]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.documents, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.documents));
+                     folderMap[folders.documents] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.documents, fileName)
+                     );
+                  }
+                  break;
+               case ".jpg":
+               case ".jpeg":
+               case ".png":
+               case ".svg":
+                  if (folderMap[folders.images]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.images, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.images));
+                     folderMap[folders.images] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.images, fileName)
+                     );
+                  }
+                  break;
+               case ".mp4":
+               case ".mov":
+               case ".wmv":
+               case ".avi":
+               case ".flv":
+               case ".mkv":
+                  if (folderMap[folders.videos]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.videos, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.videos));
+                     folderMap[folders.videos] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.videos, fileName)
+                     );
+                  }
+                  break;
+               case ".exe":
+                  if (folderMap[folders.programs]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.programs, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.programs));
+                     folderMap[folders.programs] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.programs, fileName)
+                     );
+                  }
+                  break;
+               case ".zip":
+               case ".rar":
+                  if (folderMap[folders.archives]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.archives, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.archives));
+                     folderMap[folders.archives] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.archives, fileName)
+                     );
+                  }
+                  break;
+               case ".css":
+               case ".scss":
+                  if (folderMap[folders.styles]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.styles, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.styles));
+                     folderMap[folders.styles] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.styles, fileName)
+                     );
+                  }
+                  break;
+               case ".html":
+               case ".js":
+               case ".jsx":
+               case ".java":
+               case ".py":
+               case ".vue":
+                  if (folderMap[folders.code]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.code, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.code));
+                     folderMap[folders.code] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.code, fileName)
+                     );
+                  }
+                  break;
+               default:
+                  if (folderMap[folders.misc]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.misc, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.misc));
+                     folderMap[folders.misc] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.misc, fileName)
+                     );
+                  }
+                  break;
+            }
          }
       }
-   }
 
-   console.log(
-      "✨✨A clean working directory is always something to be happy about🎆🎆"
-   );
-   process.exit(0);
+      console.log(
+         "✨✨A clean working directory is always something to be happy about🎆🎆"
+      );
+      process.exit(0);
+   } catch (error) {
+      handleError(
+         "Encountered an error. Could be because this program does not have the right permissions to move files around. 😫"
+      );
+   }
 }
 
 module.exports = initialize;
