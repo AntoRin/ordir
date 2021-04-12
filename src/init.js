@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const inquirer = require("inquirer");
+const { handleError } = require("./utils/errorHandler");
 
 async function getCustomDetails() {
    console.info(
@@ -45,7 +46,6 @@ async function getCustomDetails() {
             default: "Styles",
          },
       ]);
-      console.log(customDirectories);
       return customDirectories;
    } catch (error) {
       console.log(error);
@@ -67,11 +67,6 @@ async function initialize() {
       styles: "Styles",
    };
 
-   if (flag !== "-y" && flag !== "--yes" && !flag?.match(/-y\D|-\Dy/)) {
-      let customFolderNames = await getCustomDetails();
-      folders = customFolderNames;
-   }
-
    let targets = [];
    let exclusions = [];
 
@@ -83,6 +78,8 @@ async function initialize() {
    ) {
       let [argv1, argv2, thisFlag, ...requiredTargets] = process.argv;
       targets = requiredTargets.map(extension => extension.toLowerCase());
+      let invalidExtension = targets.find(extension => extension[0] !== ".");
+      if (invalidExtension) handleError("Invalid extension");
    }
 
    if (
@@ -93,6 +90,13 @@ async function initialize() {
    ) {
       let [argv1, argv2, thisFlag, ...requiredExclusions] = process.argv;
       exclusions = requiredExclusions.map(extension => extension.toLowerCase());
+      let invalidExtension = exclusions.find(extension => extension[0] !== ".");
+      if (invalidExtension) handleError("Invalid extension");
+   }
+
+   if (flag !== "-y" && flag !== "--yes" && !flag?.match(/^-y\D$|^-\Dy$/)) {
+      let customFolderNames = await getCustomDetails();
+      folders = customFolderNames;
    }
 
    let folderMap = {
@@ -245,7 +249,7 @@ async function initialize() {
       }
    }
 
-   console.log("✨✨Clean working directory🎆🎆");
+   console.log("✨✨Clean working directory is happiness🎆🎆");
    process.exit(0);
 }
 

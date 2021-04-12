@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-const beginInterface = require("../src/index.js");
+const main = require("../src/index.js");
 
-beginInterface();
+main.beginInterface();
