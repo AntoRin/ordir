@@ -115,6 +115,15 @@ async function initialize() {
       flag === "-ye"
    ) {
       let [argv1, argv2, thisFlag, ...requiredExclusions] = process.argv;
+      if (
+         requiredExclusions.length > 1 &&
+         !requiredExclusions[requiredExclusions.length - 1].startsWith(".")
+      ) {
+         specialDirectory = requiredExclusions.splice(
+            requiredExclusions.length - 1,
+            1
+         )[0];
+      }
       exclusions = requiredExclusions.map(extension => extension.toLowerCase());
       let invalidExtension = exclusions.find(extension => extension[0] !== ".");
       if (invalidExtension) handleError("Invalid extension");
@@ -160,6 +169,8 @@ async function initialize() {
       let ext = path.extname(file).toLowerCase();
       let fileName = path.basename(filePath);
 
+      if (stat.isDirectory()) continue;
+
       if (targets.length > 0) {
          if (targets.includes(ext)) {
             if (specialDirectory) {
@@ -183,7 +194,27 @@ async function initialize() {
       }
 
       if (exclusions.length > 0) {
-         if (exclusions.includes(ext)) continue;
+         if (!exclusions.includes(ext)) {
+            if (specialDirectory) {
+               if (specialDirectoryInstance) {
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, specialDirectory, fileName)
+                  );
+                  continue;
+               } else {
+                  fs.mkdirSync(path.join(directory, specialDirectory));
+                  specialDirectoryInstance = true;
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, specialDirectory, fileName)
+                  );
+                  continue;
+               }
+            }
+         } else {
+            continue;
+         }
       }
 
       if (stat.isFile()) {

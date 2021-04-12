@@ -14,7 +14,7 @@ function showHelp(flagMap) {
    );
 
    console.log(
-      "\nBy default the files you target with -t try to find one of the default directories. If you want to override this behavior and want files with specific extensions to be placed in a file of your choice, specify the name of a directory by the end of the file list."
+      "\nBy default the files you target with -t try to find one of the default directories. If you want to override this behavior and want files with specific extensions to be placed in a file of your choice, specify the name of a directory by the end of the file list. This can be done with -e as well."
    );
 
    console.log(

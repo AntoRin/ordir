@@ -56,13 +56,25 @@ ordir -yt .mp4 .jpeg
 ordir -ey .rar .zip .exe
 ```
 
-#### Target specific files and place them in a folder of your choice:
+#### Target specific files and place them in a directory of your choice:
 
 When you specify a -t flag to target files, the files try to find one of the available default directories. But by specifying the name of a directory at the end of the file-list, you can override this behavior.
 
 ```
 ordir -t .js .html .css Dev
 ```
+
+This is the command you'd have to use to place all .js, .html, .css files in a directory called Dev. It's as simple as that.
+
+### Exclude specific files and place the other files in a directory of your choice:
+
+In order to exclude a certain group of files and move all the other files into a common directory, you'd do the following:
+
+```
+ordir -e .js Docs
+```
+
+The above command moves all files other than JavaScript to a directory called Docs.
 
 #### Get help
 
