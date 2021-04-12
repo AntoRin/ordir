@@ -56,4 +56,18 @@ ordir -yt .mp4 .jpeg
 ordir -ey .rar .zip .exe
 ```
 
-At any point you can use -h or --help to show help in the terminal.
+#### Target specific files and place them in a folder of your choice:
+
+When you specify a -t flag to target files, the files try to find one of the available default directories. But by specifying the name of a directory at the end of the file-list, you can override this behavior.
+
+```
+ordir -t .js .html .css Dev
+```
+
+#### Get help
+
+At any point, you can use -h or --help to show help in the terminal.
+
+```
+ordir -h
+```

@@ -45,6 +45,19 @@ async function getCustomDetails() {
             message: "Name of the directory you wish to use for Styles:",
             default: "Styles",
          },
+         {
+            type: String,
+            name: "code",
+            message: "Name of the directory you wish to use for Code:",
+            default: "Code",
+         },
+         {
+            type: String,
+            name: "misc",
+            message:
+               "Name of the directory you wish to use for miscellaneous files:",
+            default: "Misc",
+         },
       ]);
       return customDirectories;
    } catch (error) {
@@ -65,10 +78,14 @@ async function initialize() {
       programs: "Programs",
       archives: "Archives",
       styles: "Styles",
+      code: "Code",
+      misc: "Misc",
    };
 
    let targets = [];
    let exclusions = [];
+   let specialDirectoryInstance = false;
+   let specialDirectory = null;
 
    if (
       flag === "-t" ||
@@ -77,6 +94,15 @@ async function initialize() {
       flag === "-yt"
    ) {
       let [argv1, argv2, thisFlag, ...requiredTargets] = process.argv;
+      if (
+         requiredTargets.length > 1 &&
+         !requiredTargets[requiredTargets.length - 1].startsWith(".")
+      ) {
+         specialDirectory = requiredTargets.splice(
+            requiredTargets.length - 1,
+            1
+         )[0];
+      }
       targets = requiredTargets.map(extension => extension.toLowerCase());
       let invalidExtension = targets.find(extension => extension[0] !== ".");
       if (invalidExtension) handleError("Invalid extension");
@@ -94,7 +120,12 @@ async function initialize() {
       if (invalidExtension) handleError("Invalid extension");
    }
 
-   if (flag !== "-y" && flag !== "--yes" && !flag?.match(/^-y\D$|^-\Dy$/)) {
+   if (
+      flag !== "-y" &&
+      flag !== "--yes" &&
+      !flag?.match(/^-y\D$|^-\Dy$/) &&
+      !specialDirectory
+   ) {
       let customFolderNames = await getCustomDetails();
       folders = customFolderNames;
    }
@@ -106,6 +137,8 @@ async function initialize() {
       [folders["programs"]]: false,
       [folders["archives"]]: false,
       [folders["styles"]]: false,
+      [folders["code"]]: false,
+      [folders["misc"]]: false,
    };
 
    let files = fs.readdirSync(directory);
@@ -117,6 +150,7 @@ async function initialize() {
 
       if (stat.isDirectory()) {
          if (fileName in folderMap) folderMap[fileName] = true;
+         if (fileName === specialDirectory) specialDirectoryInstance = true;
       }
    }
 
@@ -127,15 +161,29 @@ async function initialize() {
       let fileName = path.basename(filePath);
 
       if (targets.length > 0) {
-         if (!targets.includes(ext)) continue;
+         if (targets.includes(ext)) {
+            if (specialDirectory) {
+               if (specialDirectoryInstance) {
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, specialDirectory, fileName)
+                  );
+                  continue;
+               } else {
+                  fs.mkdirSync(path.join(directory, specialDirectory));
+                  specialDirectoryInstance = true;
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, specialDirectory, fileName)
+                  );
+                  continue;
+               }
+            }
+         } else continue;
       }
 
       if (exclusions.length > 0) {
          if (exclusions.includes(ext)) continue;
-      }
-
-      if (stat.isDirectory()) {
-         if (fileName in folderMap) folderMap[fileName] = true;
       }
 
       if (stat.isFile()) {
@@ -245,11 +293,49 @@ async function initialize() {
                      path.join(directory, folders.styles, fileName)
                   );
                }
+               break;
+            case ".html":
+            case ".js":
+            case ".jsx":
+            case ".java":
+            case ".py":
+            case ".vue":
+               if (folderMap[folders.code]) {
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.code, fileName)
+                  );
+               } else {
+                  fs.mkdirSync(path.join(directory, folders.code));
+                  folderMap[folders.code] = true;
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.code, fileName)
+                  );
+               }
+               break;
+            default:
+               if (folderMap[folders.misc]) {
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.misc, fileName)
+                  );
+               } else {
+                  fs.mkdirSync(path.join(directory, folders.misc));
+                  folderMap[folders.misc] = true;
+                  fs.renameSync(
+                     filePath,
+                     path.join(directory, folders.misc, fileName)
+                  );
+               }
+               break;
          }
       }
    }
 
-   console.log("✨✨Clean working directory is happiness🎆🎆");
+   console.log(
+      "✨✨A clean working directory is always something to be happy about🎆🎆"
+   );
    process.exit(0);
 }
 
