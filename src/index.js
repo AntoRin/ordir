@@ -2,7 +2,7 @@ const initialize = require("./init");
 const { showHelp } = require("./utils/help");
 const { handleError } = require("./utils/errorHandler");
 
-const version = "1.3.3";
+const version = "1.3.5";
 
 function beginInterface() {
    const allFlags = [
