@@ -1,8 +1,8 @@
 # ordir
 
-## Organize your directories with the CLI.
+## Organize your directories with an interactive CLI.
 
-Invoke the CLI in a directory you think could benefit from a consistent structure. _ordir_ automatically does this for you - it organizes documents, images, videos, executables, etc., by moving them into separate, relevant directories.
+Invoke the CLI in a directory you think could benefit from a consistent structure. It's never been easier to organize your files, because _ordir_ handles everything automatically for you - it organizes files ranging across different categories such as documents, images, videos, executables, etc., by moving them into separate, relevant directories.
 
 ### Installation
 

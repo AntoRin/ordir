@@ -23,6 +23,12 @@ async function getCustomDetails() {
          },
          {
             type: String,
+            name: "audio",
+            message: "Name of the directory you wish to use for Audio files:",
+            default: "Audio",
+         },
+         {
+            type: String,
             name: "videos",
             message: "Name of the directory you wish to use for Videos:",
             default: "Videos",
@@ -53,6 +59,19 @@ async function getCustomDetails() {
          },
          {
             type: String,
+            name: "database",
+            message:
+               "Name of the directory you wish to use for Database files:",
+            default: "Database",
+         },
+         {
+            type: String,
+            name: "font",
+            message: "Name of the directory you wish to use for Font files:",
+            default: "Font",
+         },
+         {
+            type: String,
             name: "misc",
             message:
                "Name of the directory you wish to use for miscellaneous files:",
@@ -75,11 +94,14 @@ async function initialize() {
       let folders = {
          documents: "Documents",
          images: "Images",
+         audio: "Audio",
          videos: "Videos",
          programs: "Programs",
          archives: "Archives",
          styles: "Styles",
          code: "Code",
+         database: "Database",
+         font: "Font",
          misc: "Misc",
       };
 
@@ -147,17 +169,21 @@ async function initialize() {
       let folderMap = {
          [folders["documents"]]: false,
          [folders["images"]]: false,
+         [folders["audio"]]: false,
          [folders["videos"]]: false,
          [folders["programs"]]: false,
          [folders["archives"]]: false,
          [folders["styles"]]: false,
          [folders["code"]]: false,
+         [folders["database"]]: false,
+         [folders["font"]]: false,
          [folders["misc"]]: false,
       };
 
-      let files = fs.readdirSync(directory);
+      let filesAndDirs = fs.readdirSync(directory);
+      let allFiles = [];
 
-      for (let file of files) {
+      for (let file of filesAndDirs) {
          let filePath = path.join(directory, file);
          let stat = fs.statSync(filePath);
          let fileName = path.basename(filePath);
@@ -165,10 +191,12 @@ async function initialize() {
          if (stat.isDirectory()) {
             if (fileName in folderMap) folderMap[fileName] = true;
             if (fileName === specialDirectory) specialDirectoryInstance = true;
+         } else if (stat.isFile()) {
+            allFiles.push(file);
          }
       }
 
-      for (let file of files) {
+      for (let file of allFiles) {
          let filePath = path.join(directory, file);
          let stat = fs.statSync(filePath);
          let ext = path.extname(file).toLowerCase();
@@ -231,6 +259,11 @@ async function initialize() {
                case ".ppt":
                case ".pptx":
                case ".xlsx":
+               case ".odt":
+               case ".wpd":
+               case ".xlsm":
+               case ".odt":
+               case ".xls":
                   if (folderMap[folders.documents]) {
                      fs.renameSync(
                         filePath,
@@ -249,6 +282,13 @@ async function initialize() {
                case ".jpeg":
                case ".png":
                case ".svg":
+               case ".ai":
+               case ".bmp":
+               case ".gif":
+               case ".ico":
+               case ".ps":
+               case ".psd":
+               case ".tif":
                   if (folderMap[folders.images]) {
                      fs.renameSync(
                         filePath,
@@ -263,12 +303,46 @@ async function initialize() {
                      );
                   }
                   break;
+               case ".mp3":
+               case ".wav":
+               case ".wma":
+               case ".aac":
+               case ".flac":
+               case ".aif":
+               case ".cda":
+               case ".ogg":
+               case ".wpl":
+               case ".mid":
+               case ".midi":
+               case ".mpa":
+                  if (folderMap[folders.audio]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.audio, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.audio));
+                     folderMap[folders.audio] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.audio, fileName)
+                     );
+                  }
+                  break;
                case ".mp4":
                case ".mov":
                case ".wmv":
                case ".avi":
                case ".flv":
                case ".mkv":
+               case ".3g2":
+               case ".3gp":
+               case ".h264":
+               case ".m4v":
+               case ".mpg":
+               case ".rm":
+               case ".swf":
+               case ".vob":
                   if (folderMap[folders.videos]) {
                      fs.renameSync(
                         filePath,
@@ -284,6 +358,14 @@ async function initialize() {
                   }
                   break;
                case ".exe":
+               case ".apk":
+               case ".bat":
+               case ".bin":
+               case ".cgi":
+               case ".com":
+               case ".gadget":
+               case ".msi":
+               case ".wsf":
                   if (folderMap[folders.programs]) {
                      fs.renameSync(
                         filePath,
@@ -300,6 +382,14 @@ async function initialize() {
                   break;
                case ".zip":
                case ".rar":
+               case ".7z":
+               case ".tar":
+               case ".deb":
+               case ".arj":
+               case ".pkg":
+               case ".rpm":
+               case ".tar.gz":
+               case ".z":
                   if (folderMap[folders.archives]) {
                      fs.renameSync(
                         filePath,
@@ -336,6 +426,18 @@ async function initialize() {
                case ".java":
                case ".py":
                case ".vue":
+               case ".jar":
+               case ".c":
+               case ".cgi":
+               case ".class":
+               case ".cpp":
+               case ".cs":
+               case ".h":
+               case ".php":
+               case ".py":
+               case ".sh":
+               case ".swift":
+               case ".vb":
                   if (folderMap[folders.code]) {
                      fs.renameSync(
                         filePath,
@@ -347,6 +449,47 @@ async function initialize() {
                      fs.renameSync(
                         filePath,
                         path.join(directory, folders.code, fileName)
+                     );
+                  }
+                  break;
+               case ".csv":
+               case ".dat":
+               case ".db":
+               case ".log":
+               case ".mdb":
+               case ".sav":
+               case ".sql":
+               case ".tar":
+               case ".xml":
+                  if (folderMap[folders.database]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.database, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.database));
+                     folderMap[folders.database] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.database, fileName)
+                     );
+                  }
+                  break;
+               case ".fnt":
+               case ".fon":
+               case ".otf":
+               case ".ttf":
+                  if (folderMap[folders.font]) {
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.font, fileName)
+                     );
+                  } else {
+                     fs.mkdirSync(path.join(directory, folders.font));
+                     folderMap[folders.font] = true;
+                     fs.renameSync(
+                        filePath,
+                        path.join(directory, folders.font, fileName)
                      );
                   }
                   break;
