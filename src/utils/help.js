@@ -1,13 +1,8 @@
-function showHelp(flagMap) {
+function showHelp() {
    console.log(
       "\n\n Use ordir to organize your current working directory by moving files into relevant folders.\n\n"
    );
    console.log("usage: ordir [<args>]\n\n");
-
-   process.stdout.write("Options: ");
-   for (let flag in flagMap) {
-      flagMap[flag].forEach(option => process.stdout.write(` [${option}] `));
-   }
 
    console.log(
       "\n\nHint: use the -t or --target flag to target files with a specific extension. Similarly, you can use the -e or --exclude flag to exclude files with a specific extension\n"

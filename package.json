@@ -23,6 +23,7 @@
    },
    "homepage": "https://github.com/AntoRin/ordir#readme",
    "dependencies": {
-      "inquirer": "^8.0.0"
+      "inquirer": "^8.0.0",
+      "minimist": "^1.2.5"
    }
 }
